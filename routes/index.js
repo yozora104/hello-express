@@ -9,7 +9,7 @@ router.get('/', function(req, res, next) {
     {name:"lampara", price:20, stock:14},
     {name:"secadora", price:180, stock:5},
     {name:"lavadora", price:290, stock:3},
-    {name:"cosa", price:180, stock:0}
+    {name:"cd", price:180, stock:0}
 
   ];
   res.render('index', { title: 'clase333', products });
