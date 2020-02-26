@@ -1,5 +1,5 @@
 const Producto=require('./products');
-const Sequelize = require('./db');
+const sequelize = require('./db');
 
 //Conectamos con la BD
 sequelize

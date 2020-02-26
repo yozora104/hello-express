@@ -1,4 +1,6 @@
+const Sequelize=require('sequelize');
 const sequelize=require('./db');
+
 //Definimos modelo para producto
 const producto = sequelize.define('producto', {
   nombre: Sequelize.STRING,
@@ -8,4 +10,4 @@ const producto = sequelize.define('producto', {
   stock:Sequelize.INTEGER,
   descripcion:Sequelize.STRING
   });
-  module.exports=Producto;
+  module.exports=producto;
