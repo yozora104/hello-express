@@ -11,3 +11,9 @@ sequelize
   .catch(err => {
     console.error('Unable to connect to the database:', err);
   });
+  module.exports={Producto
+  //,
+//pedido,
+//usuario,
+//carrito
+}

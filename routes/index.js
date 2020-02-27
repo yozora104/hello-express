@@ -3,10 +3,15 @@ var router = express.Router();
 var products = require('../models/products.js');
 var users = require('../models/users.js');
 
+const {Producto}=require('../models');
 /* GET home page. */
 router.get('/', function(req, res, next) {
   const username = req.session.username;
-  res.render('index', { title: 'The Jungle', username, products });
+  Producto.findAll().then(products=>{
+    res.render('index', { title: 'Amazon tiembla', username, products });
+
+  })
+  
 });
 
 router.get('/products/:ref', function (req, res, next) {
