@@ -8,21 +8,22 @@ const {Producto}=require('../models');
 router.get('/', function(req, res, next) {
   const username = req.session.username;
   Producto.findAll().then(products=>{
-    res.render('index', { title: 'Amazon tiembla', username, products });
+    // console.log(products);
+    res.render('index', { title: 'Amazon tiembla ', username, products });
 
   })
   
 });
 
+//pagina con los detalles de un producto, segun su referencia
 router.get('/products/:ref', function (req, res, next) {
   // Obtengo la referencia del producto a partir de la ruta
   var ref = req.params.ref;
-
-  // Busco entre los productos el que coincide con la referencia
-  const product = products.find(function(p) { 
-    return p.ref==ref; 
-  });
-
+  Producto.findOne({
+    where: {ref}
+  })
+  .then(product => {
+    
   if (product) {
     // Pasamos los datos del producto a la plantilla
     res.render('product', {product});
@@ -30,6 +31,7 @@ router.get('/products/:ref', function (req, res, next) {
     // Si no encontramos el producto con esa referencia, redirigimos a página de error.
     res.redirect("/error");
   }
+})
 });
 
 var cesta = []; //provisional
