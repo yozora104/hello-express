@@ -1,4 +1,7 @@
 const Producto=require('./products');
+const Usuario=require('./users');
+const Pedido=require('./pedido');
+const Carrito=require('./carrito');
 const sequelize = require('./db');
 
 //Conectamos con la BD
@@ -11,9 +14,5 @@ sequelize
   .catch(err => {
     console.error('Unable to connect to the database:', err);
   });
-  module.exports={Producto
-  //,
-//pedido,
-//usuario,
-//carrito
-}
+  module.exports={Producto, Usuario,Pedido,Carrito
+  }

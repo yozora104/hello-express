@@ -1,4 +1,10 @@
-module.exports = [
-    {username: "jairo", password: "123456"},
-    {username: "pepito", password: "654321"}
-];
+const Sequelize = require('sequelize');
+const sequelize=require('./db');
+//Definimos modelo para producto
+const users = sequelize.define('usuario', {
+    nombre: Sequelize.STRING(50),
+    apellidos: Sequelize.STRING(50),
+    email: Sequelize.STRING(50),
+    pass: Sequelize.STRING(25)
+    });
+    module.exports=users;
