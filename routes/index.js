@@ -2,8 +2,7 @@ var express = require('express');
 var router = express.Router();
 var products = require('../models/products.js');
 var users = require('../models/users.js');
-
-const {Producto}=require('../models');
+const {Producto, Usuario}=require('../models');
 /* GET home page. */
 router.get('/', function(req, res, next) {
   const username = req.session.username;
@@ -74,6 +73,19 @@ router.post("/login", function (req, res, next) {
     res.render("login");
   }
 });
+router.post("/registro", function (req, res, next) {
+  const datos = req.body;
+  if (datos.pass==datos.pass2){
+    Usuario.create(datos)
+    .then(Usuario=>{
+      res.redirect("/login");
+    });
+  } 
+  else{
+    res.redirect("/registro");
+  }
+  });
+
 
 module.exports = router;
 
