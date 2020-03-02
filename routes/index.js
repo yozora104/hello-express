@@ -60,18 +60,22 @@ router.get("/login", function (req, res, next) {
  * Si no coincide, vuelve a cargar la página de login para mostrar un error.
  */
 router.post("/login", function (req, res, next) {
-  const {username, password} = req.body;
-  const user = users.find(function (u) {
-    return (u.username == username && u.password == password);
-  });
+  const {email, pass} = req.body;
+  Usuario.findOne({where:{email,pass}})
+  .then(usuario=>{
+    if (usuario) {
+      req.session.usuarioId = usuario.id;
+      res.redirect("/");
+    } else {
+      //TODO: inyectar mensaje de error en plantilla
+      res.render("/login");
+    }
+  })
+    
+});
 
-  if (user) {
-    req.session.username = username;
-    res.redirect("/");
-  } else {
-    //TODO: inyectar mensaje de error en plantilla
-    res.render("login");
-  }
+router.get("/registro",function (req,res,next){
+  res.render("registro");
 });
 router.post("/registro", function (req, res, next) {
   const datos = req.body;
