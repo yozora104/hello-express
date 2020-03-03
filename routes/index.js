@@ -75,21 +75,36 @@ router.post("/login", function (req, res, next) {
 });
 
 router.get("/registro",function (req,res,next){
-  res.render("registro");
+  res.render("registro",{error:undefined, datos:{}});
 });
 router.post("/registro", function (req, res, next) {
   const datos = req.body;
-  if (datos.pass==datos.pass2){
-    Usuario.create(datos)
+  if (datos.nombre.length==0){
+    res.render("registro",{datos, error:"Nombre vacio"});
+
+  } else
+  if (datos.apellidos.length==0){
+    res.render("registro", {datos, error:"Apellidos vacio"});
+  } else if (datos.email.length==0){
+    res.render("registro", {datos, error:"Email vacio"});
+  } else
+if(!/^([_a-z0-9]+[\._a-z0-9]*)(\+[a-z0-9]+)?@(([a-z0-9-]+\.)*[a-z]{2,4})$/.test(datos.email))
+{
+  res.render("registro",{datos,error:"Email no valido"});
+}
+if ((datos.pass.length<6))
+ {
+  res.render("registro", {datos, error:"Contraseña debe de tener al menos 6 caracteres"});
+} else
+if (datos.pass!=datos.pass2){
+  res.render("registro", {datos, error:"Contraseña no coincide"});
+}else {
+    Usuario.create(datos)                   
     .then(Usuario=>{
       res.redirect("/login");
-    });
-  } 
-  else{
-    res.redirect("/registro");
-  }
   });
-
+  }
+});
 
 module.exports = router;
 
