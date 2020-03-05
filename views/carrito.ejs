@@ -57,14 +57,16 @@
         
         <table class="tftable" border="1">
         <tr><th>REF</th><th>NOMBRE</th><th>UDS</th><th>P/U</th><th>SUBTOTAL</th></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td></tr>
-        <!-- <tr><td>Row:2 Cell:1</td><td>Row:2 Cell:2</td><td>Row:2 Cell:3</td><td>Row:2 Cell:4</td><td>Row:2 Cell:5</td></tr>
-        <tr><td>Row:3 Cell:1</td><td>Row:3 Cell:2</td><td>Row:3 Cell:3</td><td>Row:3 Cell:4</td><td>Row:3 Cell:5</td></tr>
-        <tr><td>Row:4 Cell:1</td><td>Row:4 Cell:2</td><td>Row:4 Cell:3</td><td>Row:4 Cell:4</td><td>Row:4 Cell:5</td></tr>
-        <tr><td>Row:5 Cell:1</td><td>Row:5 Cell:2</td><td>Row:5 Cell:3</td><td>Row:5 Cell:4</td><td>Row:5 Cell:5</td></tr>
-        <tr><td>Row:6 Cell:1</td><td>Row:6 Cell:2</td><td>Row:6 Cell:3</td><td>Row:6 Cell:4</td><td>Row:6 Cell:5</td></tr> -->
-        <br>
-        
+
+        <% for (var i=0; i<productos.length; i++){%> 
+            <tr>
+        <td><%=productos[i].ref %></td>
+        <td><%=productos[i].nombre %></td>
+        <td><%=productos[i].stock %></td>
+        <td><%=productos[i].productocarrito.precio %></td>
+        <td><%=productos[i].productocarrito.stock * productos[i].precio %></td>
+            </tr>
+            <% } %>
         </table>
         <h2 class="total">Total---------------------- </h2>
         <br>

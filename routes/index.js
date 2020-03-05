@@ -1,36 +1,43 @@
+  
 var express = require('express');
 var router = express.Router();
-var products = require('../models/products.js');
 var users = require('../models/users.js');
-const {Producto, Usuario,Carrito}=require('../models');
+
+
+const { Producto, Usuario, Carrito } = require('../models');
+
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   const username = req.session.username;
-  Producto.findAll().then(products=>{
-    // console.log(products);
-    res.render('index', { title: 'Amazon tiembla ', username, products });
 
+  Producto.findAll().then(products => {    
+    res.render('index', { title: 'The Jungle', username, products });
   })
-  
 });
 
-//pagina con los detalles de un producto, segun su referencia
+/**
+ * Página con los detalles de un producto, según su referencia.
+ */
 router.get('/products/:ref', function (req, res, next) {
   // Obtengo la referencia del producto a partir de la ruta
   var ref = req.params.ref;
+
   Producto.findOne({
     where: {ref}
   })
   .then(product => {
-    
-  if (product) {
-    // Pasamos los datos del producto a la plantilla
-    res.render('product', {product});
-  } else {
-    // Si no encontramos el producto con esa referencia, redirigimos a página de error.
-    res.redirect("/error");
-  }
-})
+    if (product) {
+      // Pasamos los datos del producto a la plantilla
+      res.render('product', {product});
+    } else {
+      // Si no encontramos el producto con esa referencia, redirigimos a página de error.
+      res.redirect("/error");
+    }
+  })
+
+
+
 });
 
 var cesta = []; //provisional
@@ -39,27 +46,40 @@ router.post("/comprar", function (req, res, next) {
   const ref = req.body.ref;
 
   // Busco entre los productos el que coincide con la referencia
-  Producto.findOrCreate({where:{ref}})
-  .then(producto=>{
-    if (producto)
-    {
-      //Localizamos carrito y ponemos producto en carrito
-      const usuarioId=req.session.usuarioId;
+  Producto.findOne({where: {ref}})
+  .then(producto => {
+    if (producto) {
+      // Localizamos carrito y ponemos producto en carrito
+      const usuarioId = req.session.usuarioId;
       if (!usuarioId) res.redirect("/login");
-      Carrito.findOrCreate({where:{usuarioId}, defaults:{usuarioId}})  
+
+      Carrito.findOrCreate({where: {usuarioId}, include:[Producto], defaults: {usuarioId}})
       .then(([carrito, created]) => {
-        carrito.addProducto(producto)
-        .then(()=>{
+        var productos=carrito.productos;
+        var p=productos.find(p=> p.ref==ref);
+        if(p){
+          p.productocarrito.increment({cantidad:1})
+          
+          .then(()=>{
+            // p.productos.decrement({stock:1})
+            res.redirect("/");
+          });
+          //articula ya en el carrito, incrementamos la cantidad
+
+        }
+        else{
+          carrito.addProducto(producto)
+        .then(() => {
+          // Redirigimos a página de productos
           res.redirect("/");
         })
-      }) 
-    } 
-    else
-    {
-      //mostrar pagina de error
-       res.render("error",{message: "No existe el producto solicitado"});
+      }
+        })
+        
+    } else {
+      // Mostrar página de error
+      res.render("error", {message: "No existe el producto solicitado"});
     }
-
   });
 });
 
@@ -75,53 +95,68 @@ router.get("/login", function (req, res, next) {
  */
 router.post("/login", function (req, res, next) {
   const {email, pass} = req.body;
-  Usuario.findOne({where:{email,pass}})
-  .then(usuario=>{
+
+  Usuario.findOne({where: {email, pass}})
+  .then(usuario => {
     if (usuario) {
       req.session.usuarioId = usuario.id;
       res.redirect("/");
     } else {
       //TODO: inyectar mensaje de error en plantilla
-      res.render("/login");
+      res.render("login");
     }
   })
-    
+
+
 });
 
-router.get("/registro",function (req,res,next){
-  res.render("registro",{error:undefined, datos:{}});
+
+router.get("/registro", function (req, res, next) {
+  res.render("registro", {error:undefined});
 });
+
+
 router.post("/registro", function (req, res, next) {
   const datos = req.body;
-  if (datos.nombre.length==0){
-    res.render("registro",{datos, error:"Nombre vacio"});
 
-  } else
-  if (datos.apellidos.length==0){
-    res.render("registro", {datos, error:"Apellidos vacio"});
-  } else if (datos.email.length==0){
-    res.render("registro", {datos, error:"Email vacio"});
-  } else
-if(!/^([_a-z0-9]+[\._a-z0-9]*)(\+[a-z0-9]+)?@(([a-z0-9-]+\.)*[a-z]{2,4})$/.test(datos.email))
-{
-  res.render("registro",{datos,error:"Email no valido"});
-}
-if ((datos.pass.length<6))
- {
-  res.render("registro", {datos, error:"Contraseña debe de tener al menos 6 caracteres"});
-} else
-if (datos.pass!=datos.pass2){
-  res.render("registro", {datos, error:"Contraseña no coincide"});
-}else {
-    Usuario.create(datos)                   
-    .then(Usuario=>{
-      res.redirect("/login");
-  });
+  if (datos.nombre.length==0) {
+    res.render("registro", {datos, error:"El nombre no debe ir en blanco."})
   }
+  else if (datos.apellidos.length==0) {
+    res.render("registro", {datos, error:"Los apellidos no deben ir en blanco."})
+  }
+  else if (datos.email.length==0) {
+    res.render("registro", {datos, error:"El email no debe ir en blanco."})
+  }
+  else if (datos.pass.length<6) {
+    res.render("registro", {datos, error:"La contraseña debe tener al menos 6 caracteres."})
+  }
+  else if (datos.pass != datos.pass2) {
+    res.render("registro", {datos, error:"Las contraseñas no coinciden."})
+  }
+  else {
+    Usuario.create(datos)
+    .then(usuario => {
+      res.redirect("/login");
+    })
+  }
+
 });
-router.get("/carrito", function (req,res,next){
-  res.render("carrito");
-})
+
+
+router.get("/carrito", function (req, res, next) {
+  const usuarioId=req.session.usuarioId;
+  if (! usuarioId) res.redirect("/login");
+  else{
+
+  
+  Carrito.findOne({where:{usuarioId}, include: [Producto]})
+  .then(carrito=>{
+          var productos=carrito.productos;
+          res.render("carrito",{productos});
+  });
+}
+});
+
 
 module.exports = router;
-
