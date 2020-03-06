@@ -62,7 +62,7 @@ router.post("/comprar", function (req, res, next) {
           
           .then(()=>{
             // p.productos.decrement({stock:1})
-            res.redirect("/");
+            res.redirect("/carrito");
           });
           //articula ya en el carrito, incrementamos la cantidad
 
@@ -71,7 +71,7 @@ router.post("/comprar", function (req, res, next) {
           carrito.addProducto(producto)
         .then(() => {
           // Redirigimos a página de productos
-          res.redirect("/");
+          res.redirect("/carrito");
         })
       }
         })
@@ -153,10 +153,39 @@ router.get("/carrito", function (req, res, next) {
   Carrito.findOne({where:{usuarioId}, include: [Producto]})
   .then(carrito=>{
           var productos=carrito.productos;
-          res.render("carrito",{productos});
+          const total = productos.reduce((total, p) => total + p.precio * p.productocarrito.cantidad, 0);
+          res.render("carrito", {productos, total});
   });
 }
 });
+  router.post("/checkout",function (req,res,next){
+    const usuarioId=req.session.usuarioId;
+    if (!usuarioId) res.redirect("/login");
+    else
+    {
+      Carrito.findOne({where:{usuarioId},include:[Producto]})
+      .then (carrito =>{
+        const productos=carrito.productos;
+        if (productos.every(p=> p.stock >= p.productocarrito.cantidad)){
+             //TODO: niveles de existencias OK, crear nuevo pedido con los productos
+
+      } else {
+        //TODO: mostrar un mensaje diciendo que no hay existencias suficientes
+        for (var i=0; i<productos.length; i++){
+          productos[i].hayExistencias=productos[i].stock>= productos[i].productocarrito.cantidad;
+        }
+        const total = productos.reduce((total, p) => total + p.precio * p.productocarrito.cantidad, 0);
+
+       res.render("carrito", {productos,total});
+
+        }
+
+      });
+
+      
+  } 
+  });
+
 
 
 module.exports = router;

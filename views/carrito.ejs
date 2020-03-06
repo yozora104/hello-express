@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Iniciar sesión</title>
+<title>Carrito</title>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> 
@@ -42,33 +42,59 @@
         #boton{
             float: left;
             margin-left: 20px;
-            border: 3px solid;
+            /* border: 3px solid; */
+            border-radius: 50px;
+            background-color:hotpink;
         }
         .boton2{
             margin-left: 70px;
+            border-radius: 50px;
+            background-color: hotpink;
+            /* border: 3px solid; */
         }
         .total{
             margin-left:20px;
             color: orange;
+            text-shadow: black;
+            
+        }
+        .error{
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-style: italic;
+            font-style: oblique;
+            background-color: crimson
+
 
         }
 
         </style>
         
         <table class="tftable" border="1">
-        <tr><th>REF</th><th>NOMBRE</th><th>UDS</th><th>P/U</th><th>SUBTOTAL</th></tr>
+        <tr><th>REF</th><th>NOMBRE</th><th>UDS</th><th>precio</th><th>SUBTOTAL</th></tr>
 
         <% for (var i=0; i<productos.length; i++){%> 
+            <% if (productos[i].hayExistencias==false){ %>
+                <tr>
+                    <td><%=productos[i].ref %></td>
+                    <td><%=productos[i].nombre %></td>
+                </td>
+                    <td class="error" colspan="3"><h4>No hay suficiente stock</h3></td>
+                </tr>
+                <% 
+                } else{ %>
             <tr>
         <td><%=productos[i].ref %></td>
         <td><%=productos[i].nombre %></td>
-        <td><%=productos[i].stock %></td>
-        <td><%=productos[i].productocarrito.precio %></td>
-        <td><%=productos[i].productocarrito.stock * productos[i].precio %></td>
+        <td><%=productos[i].productocarrito.cantidad %></td>
+        <td><%=productos[i].precio %> €</td>
+        <td><%=productos[i].productocarrito.cantidad * productos[i].precio %> €</td>
             </tr>
             <% } %>
+            <% } %>
         </table>
-        <h2 class="total">Total---------------------- </h2>
+        <h2 class="total">Total----------------------<th><%= total %> €</th> </h2>
+        
+       
         <br>
         
          <a href="/" btn class="" id="boton"><b>Seguir comprando</b></a>
