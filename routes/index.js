@@ -1,11 +1,8 @@
-  
 var express = require('express');
 var router = express.Router();
 var users = require('../models/users.js');
 
-
-const { Producto, Usuario, Carrito } = require('../models');
-
+const { Producto, Usuario, Carrito, Pedido, sequelize } = require('../models');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -52,30 +49,25 @@ router.post("/comprar", function (req, res, next) {
       // Localizamos carrito y ponemos producto en carrito
       const usuarioId = req.session.usuarioId;
       if (!usuarioId) res.redirect("/login");
-
-      Carrito.findOrCreate({where: {usuarioId}, include:[Producto], defaults: {usuarioId}})
+      Carrito.findOrCreate({where: {usuarioId}, include: [Producto], defaults: {usuarioId}})
       .then(([carrito, created]) => {
-        var productos=carrito.productos;
-        var p=productos.find(p=> p.ref==ref);
-        if(p){
-          p.productocarrito.increment({cantidad:1})
-          
-          .then(()=>{
-            // p.productos.decrement({stock:1})
+        var productos = carrito.productos;
+        var p = productos.find(p => p.ref==ref);
+        if (p) {
+          p.productocarrito.increment({cantidad: 1})
+          .then(() => {
+            // Redirigimos a página de productos
             res.redirect("/carrito");
-          });
-          //articula ya en el carrito, incrementamos la cantidad
-
-        }
-        else{
+          })
+          //TODO: incrementar cantidad
+        } else {
           carrito.addProducto(producto)
-        .then(() => {
-          // Redirigimos a página de productos
-          res.redirect("/carrito");
-        })
-      }
-        })
-        
+          .then(() => {
+            // Redirigimos a página de productos
+            res.redirect("/carrito");
+          })
+        }
+      })
     } else {
       // Mostrar página de error
       res.render("error", {message: "No existe el producto solicitado"});
@@ -145,47 +137,51 @@ router.post("/registro", function (req, res, next) {
 
 
 router.get("/carrito", function (req, res, next) {
-  const usuarioId=req.session.usuarioId;
-  if (! usuarioId) res.redirect("/login");
-  else{
-
-  
-  Carrito.findOne({where:{usuarioId}, include: [Producto]})
-  .then(carrito=>{
-          var productos=carrito.productos;
-          const total = productos.reduce((total, p) => total + p.precio * p.productocarrito.cantidad, 0);
-          res.render("carrito", {productos, total});
-  });
-}
+  const usuarioId = req.session.usuarioId;
+  if (!usuarioId) res.redirect("/login");
+  else {
+    Carrito.findOne({where:{usuarioId}, include:[Producto]})
+    .then(carrito => {
+      const productos = carrito.productos;
+      const total = productos.reduce((total, p) => total + p.precio * p.productocarrito.cantidad, 0);
+      res.render("carrito", {productos, total});
+    })
+  }
 });
-  router.post("/checkout",function (req,res,next){
-    const usuarioId=req.session.usuarioId;
-    if (!usuarioId) res.redirect("/login");
-    else
-    {
-      Carrito.findOne({where:{usuarioId},include:[Producto]})
-      .then (carrito =>{
-        const productos=carrito.productos;
-        if (productos.every(p=> p.stock >= p.productocarrito.cantidad)){
-             //TODO: niveles de existencias OK, crear nuevo pedido con los productos
 
-      } else {
-        //TODO: mostrar un mensaje diciendo que no hay existencias suficientes
-        for (var i=0; i<productos.length; i++){
-          productos[i].hayExistencias=productos[i].stock>= productos[i].productocarrito.cantidad;
-        }
-        const total = productos.reduce((total, p) => total + p.precio * p.productocarrito.cantidad, 0);
 
-       res.render("carrito", {productos,total});
+router.post("/checkout", function (req, res, next) {
+  const usuarioId = req.session.usuarioId;
+  if (!usuarioId) res.redirect("/login");
+  else {
+      sequelize.transaction(t => {
+        return Carrito.findOne({where:{usuarioId}, include:[Producto]}, {transaction: t})
+        .then(carrito => {
+          const productos = carrito.productos;
+          if (productos.every(p => p.existencias >= p.productocarrito.cantidad)) {
+            //Niveles de existencias OK, crear nuevo pedido con los productos
+            return Pedido.create({usuarioId, estado:'NO_Pagado'}, {transaction: t})
+            .then(pedido => 
+              pedido.addProductos(productos, {transaction: t})
+              .then(() => carrito.removeProductos(productos, {transaction: t}))
+              .then(() => t.commit())
+              .then(() => res.redirect("/pedido/" + pedido.id))
+            )
+          } else {
+            // mostrar un mensaje diciendo que no hay existencias suficientes
+            productos.forEach(p => {
+              p.hayExistencias = p.existencias >= p.productocarrito.cantidad;
+            });
 
-        }
+            const total = productos.reduce((total, p) => total + p.precio * p.productocarrito.cantidad, 0);
 
-      });
-
-      
-  } 
-  });
-
+            return t.rollback()
+            .then(() => res.render("carrito", {productos, total}));
+          }
+        })
+      })
+  }
+});
 
 
 module.exports = router;

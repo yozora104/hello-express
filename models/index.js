@@ -28,5 +28,5 @@ sequelize
     console.error('Unable to connect to the database:', err);
   });
  
-  module.exports={Producto, Usuario,Pedido,Carrito
+  module.exports={sequelize, Producto, Usuario,Pedido,Carrito
   }
